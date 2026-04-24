@@ -1,6 +1,4 @@
 .idea/
-DataStructuresAssignment.iml
-editor.xml
-misc.xml
-modules.xml
-vcs.xml
+*.iml
+*.xml
+cmake-build-*/
