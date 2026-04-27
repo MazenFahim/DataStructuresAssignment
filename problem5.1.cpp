@@ -106,6 +106,7 @@ int main() {
     s.evaluate("(2 + 3) - 1");
     s.evaluate("100 + 200");
     s.evaluate(" -(2 + 2) + 10");
+    s.evaluate("3 - (2 + 6)");
 
     return 0;
 }
