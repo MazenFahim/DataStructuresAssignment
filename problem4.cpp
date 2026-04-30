@@ -1,75 +1,137 @@
 #include <iostream>
 #include <queue>
-#include <vector>
 #include <algorithm>
+#include <vector>
+
+
 using namespace std;
 
-//تقريبا فاضل الفانكشن بتاع النيو و شوية تعديلات على الاوتبوت 
-class ProcessDetails{
-    public:
+struct Process
+{
     int id;
-    int need;
-    int arrival;
-    int remaining;
-    
+    int arrival_time;
+    int burst_time;
+    int remaining_time;
+    int completion_time;
+    int turnaround_time;
+    int waiting_time;
+    bool isAdded;                       // to check if the process has been added to the ready queue or not
 };
 
-bool arriveFirst(ProcessDetails a, ProcessDetails b) {
-    return a.arrival < b.arrival;
+bool arriveFirst(Process a, Process b) {
+    return a.arrival_time < b.arrival_time;
 }
+void round_robin(vector<Process>& processes, int n, int time_quantum)
+{
+    sort(processes.begin(), processes.end(), arriveFirst);
+    queue<int> cpu_queue;
+    int current_time = 0;
+    int completed_processes = 0;          // to keep track of the number of completed processes
 
+    cout << "Queue Updates: " << endl;
 
-void printQueue(queue<int> q) {
-    if (q.empty()) {
-        cout<< "[Empty]" << endl;
-    }else{
-        cout<< "[ ";
-        queue<int> temp = q;
-        while(!temp.empty()){
-            cout << "P" << temp.front() << " ";
-            temp.pop();
+    while (completed_processes < n)
+    {
+
+        for (int i = 0; i < n; i++)
+        {
+            if (processes[i].arrival_time <= current_time && !processes[i].isAdded)
+            {
+                cpu_queue.push(i);
+                processes[i].isAdded = true; 
+                cout << "[ P " << processes[i].id << " ]" << endl;
+            }
         }
-        cout << "]" << endl;
-    }
-}
+       
+       if (cpu_queue.empty())
+        {
+            cout << "[ Empty ]" << endl;
+            for (int i = 0; i < n; i++) {
+                if (!processes[i].isAdded) {
+                    current_time = processes[i].arrival_time;
+                    break; 
+                }
+            }
+            continue;                 // If CPU queue is empty we move to the next arrival time.
+        } 
+        
+       
+        int element = cpu_queue.front();          // get the element at the front to execute it and then pop it from the queue whatever it finish or not 
+        cpu_queue.pop();
 
-bool checkNew(vector<ProcessDetails>que){
+        int ExecutionTime = 0 ;    // it is the time of the current process execution
+        while(processes[element].remaining_time > 0 && ExecutionTime < time_quantum){
+            processes[element].remaining_time--;
+            current_time++;
+            ExecutionTime++;
+            
+            for (int i = 0; i < n; i++)
+            {
+                if (processes[i].arrival_time <= current_time && !processes[i].isAdded)   // if there is a process that arrives during the execution of the current process we add it to the queue
+                {
+                    cpu_queue.push(i);
+                    processes[i].isAdded = true; 
+                }
+            }
+        }
 
-}
+        if( processes[element].remaining_time > 0)           // if the current process isn't finished yet we add it again at the end of the cpu queue 
+        {
+            cpu_queue.push(element);
+        }
+        else        // required calculations if the process is finished
+        {
+            processes[element].completion_time = current_time; 
+            processes[element].turnaround_time = processes[element].completion_time - processes[element].arrival_time;
+            processes[element].waiting_time = processes[element].turnaround_time - processes[element].burst_time;
+            completed_processes++;
+        }
 
-
-int main(){
-
-int process,done=0,clock=0,timeQuantum,currentTime=0,waitingTime;
-cin >> process;
-cin >> timeQuantum;
-
-queue < int > que;
-vector<ProcessDetails> pro(process);
-
-
-for(int i=0; i<process; i++){
-   cin>> pro[i].id >> pro[i].need >> pro[i].arrival ;
-}
-sort(pro.begin(),pro.end(),arriveFirst);
-
-
-while (done<process){
-
-    if(currentTime==pro[1].arrival){
-        que.push(pro[1].id);
-        printQueue(que);}
-    int timeNeeded= pro[1].need + timeQuantum; 
-    if (timeNeeded<= timeQuantum){
-        que.pop();
-        pro[1].remaining =0;
-        currentTime= pro[1].need ;
-    }
-    else{
-        if (timeNeeded > timeQuantum){
-
+        if (!cpu_queue.empty())
+        {
+            queue<int> temp_queue = cpu_queue;
+            cout << "[ ";
+            while (!temp_queue.empty())
+            {
+                cout << "P " << processes[temp_queue.front()].id;
+                temp_queue.pop();
+                if (!temp_queue.empty())
+                    cout << ", ";
+            }
+            cout << " ]" << endl;
         }
     }
-    
+    cout << "[ Empty ]" << endl;     // at the end of execution of all processess in the cpu queue and in vector 
 }
+
+
+int main()
+{
+    int time_quantum, n;
+    cout << "Time Quantum: ";
+    cin >> time_quantum;
+    cout << "Number of Processes: ";
+    cin >> n;
+
+    vector<Process> processes(n);
+    for (int i = 0; i < n; i++)
+    {
+        processes[i].id = i + 1;
+        cout << "Arrival Time, Needed Time P" << i + 1 << ": ";
+        cin >> processes[i].arrival_time >> processes[i].burst_time;
+        processes[i].remaining_time = processes[i].burst_time;
+        processes[i].isAdded = false; 
+    }
+
+    round_robin(processes, n, time_quantum);
+
+    cout << "Process  Completion Time  Turnaround Time  Waiting Time" << endl;
+    float total_wait_time = 0;
+    for (int i = 0; i < n; i++)
+    {
+        cout << "P" << processes[i].id << "\t   " << processes[i].completion_time << "\t\t   " << processes[i].turnaround_time << "\t\t   " << processes[i].waiting_time << endl;
+        total_wait_time += processes[i].waiting_time;
+    }
+    cout << "Average Waiting Time: " << (float)total_wait_time / n << endl;
+    return 0;
 }
