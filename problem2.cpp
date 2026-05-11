@@ -45,7 +45,7 @@ calculations++;
 
 int main()
 {
-    long long size, peak = -2147483648, peakindex, target;
+    long long size, peak = INT_MIN, peakindex, target;
     cin >> size;
     long long circular_array[size];
     for (long long i = 0; i < size; i++)

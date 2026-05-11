@@ -42,7 +42,7 @@ public:
         print(sum);
     }
 
-    void infixToPostfix(const string& infix_input, int& size) {
+    void infixToPostfix(const string& infix_input, const int& size) {
         for (int i = 0; i < size; i++) {
             char c = infix_input[i];
 
@@ -53,8 +53,8 @@ public:
             }
             else if (c == ')') {
                 while (operators.top() != '(') {
-                    if (operators.top() == '+') postfix.push_back(-1);
-                    else if (operators.top() == '-') postfix.push_back(-2);
+                    if (operators.top() == '+') postfix.push_back(-1); // -1 for '+'
+                    else if (operators.top() == '-') postfix.push_back(-2); // -2 for '-'
                     operators.pop();
                 }
                 operators.pop();
@@ -71,8 +71,8 @@ public:
                 }
 
                 while (!operators.empty() && (operators.top() == '+' || operators.top() == '-')) {
-                    if (operators.top() == '+') postfix.push_back(-1);
-                    else postfix.push_back(-2);
+                    if (operators.top() == '+') postfix.push_back(-1); // -1 for '+'
+                    else postfix.push_back(-2); // -2 for '-'
                     operators.pop();
                 }
                 operators.push(c);
@@ -93,7 +93,7 @@ public:
         }
     }
 
-    void print(const int& sum) const{
+    static void print(const int& sum) {
         cout << sum << endl;
     }
 };
